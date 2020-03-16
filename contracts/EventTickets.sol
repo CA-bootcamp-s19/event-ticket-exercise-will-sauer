@@ -11,7 +11,8 @@ contract EventTickets {
         Use the appropriate keyword to create an associated getter function.
         Use the appropriate keyword to allow ether transfers.
      */
-
+    address payable public owner;
+    
     uint   TICKET_PRICE = 100 wei;
 
     /*
@@ -20,7 +21,15 @@ contract EventTickets {
         Choose the appropriate variable type for each field.
         The "buyers" field should keep track of addresses and how many tickets each buyer purchases.
     */
+    struct Event {
+      string description;
+      string website;
+      uint totalTickets;
+      uint sales;
+      mapping(address => uint) buyers;
+      bool isOpen;
 
+    }
     Event myEvent;
 
     /*
@@ -40,7 +49,10 @@ contract EventTickets {
         Set the owner to the creator of the contract.
         Set the appropriate myEvent details.
     */
+    constructor(string memory description, string memory url, uint tickets) public {
+      owner = msg.sender;
 
+    }
     /*
         Define a function called readEvent() that returns the event details.
         This function does not modify state, add the appropriate keyword.
