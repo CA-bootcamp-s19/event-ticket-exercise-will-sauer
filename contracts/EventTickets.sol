@@ -38,20 +38,24 @@ contract EventTickets {
         LogGetRefund should provide information about the refund requester and the number of tickets refunded.
         LogEndSale should provide infromation about the contract owner and the balance transferred to them.
     */
-
+    event LogBuyTickets(address indexed purchaser, uint numberPurchased);
+    event LogGetRefund(address indexed requester, uint numberRefunded);
+    event LogEndSale(address indexed owner, uint balanceTransferred);
     /*
         Create a modifier that throws an error if the msg.sender is not the owner.
     */
-
+    modifier verifyOwner() {require(msg.sender == owner); _; "must be owner to call this function";}
     /*
         Define a constructor.
         The constructor takes 3 arguments, the description, the URL and the number of tickets for sale.
         Set the owner to the creator of the contract.
         Set the appropriate myEvent details.
     */
-    constructor(string memory description, string memory url, uint tickets) public {
+    constructor(string memory description, string memory website, uint tickets) public {
       owner = msg.sender;
-
+      myEvent.description = description;
+      myEvent.website = website;
+      myEvent.totalTickets = tickets;
     }
     /*
         Define a function called readEvent() that returns the event details.
@@ -62,7 +66,11 @@ contract EventTickets {
         public
         returns(string memory description, string memory website, uint totalTickets, uint sales, bool isOpen)
     {
-
+      description = myEvent.description;
+      website = myEvent.website;
+      totalTickets = myEvent.totalTickets;
+      sales = myEvent.sales;
+      isOpen = myEvent.isOpen;
     }
 
     /*
