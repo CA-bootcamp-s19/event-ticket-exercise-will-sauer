@@ -12,7 +12,7 @@ contract EventTickets {
         Use the appropriate keyword to allow ether transfers.
      */
     address payable public owner;
-    
+  
     uint   TICKET_PRICE = 100 wei;
 
     /*
@@ -28,7 +28,6 @@ contract EventTickets {
       uint sales;
       mapping(address => uint) buyers;
       bool isOpen;
-
     }
     Event myEvent;
 
@@ -44,7 +43,11 @@ contract EventTickets {
     /*
         Create a modifier that throws an error if the msg.sender is not the owner.
     */
-    modifier verifyOwner() {require(msg.sender == owner); _; "must be owner to call this function";}
+    modifier verifyOwner() {require(msg.sender == owner, 'must be owner to call this function');_;}
+    modifier verifyIsBuyer(address _address, mapping _buyers) {require(_buyers[_address] != address(0x0), 'not a buyer'); _;}
+    modifier saleIsOpen() {require(this.isOpen == true, "sales are closed"); _;}
+    modifier sufficientValue(uint count) {require(msg.value >= count*TICKET_PRICE, "insufficient funds"); _;}
+    modifier ticketsInStock(uint count) {require(count <= this.totalTickets, "not enough tickets left"); _;}
     /*
         Define a constructor.
         The constructor takes 3 arguments, the description, the URL and the number of tickets for sale.
@@ -56,6 +59,7 @@ contract EventTickets {
       myEvent.description = description;
       myEvent.website = website;
       myEvent.totalTickets = tickets;
+      myEvent.isOpen = true;
     }
     /*
         Define a function called readEvent() that returns the event details.
@@ -64,6 +68,7 @@ contract EventTickets {
     */
     function readEvent()
         public
+        view
         returns(string memory description, string memory website, uint totalTickets, uint sales, bool isOpen)
     {
       description = myEvent.description;
@@ -78,7 +83,14 @@ contract EventTickets {
         This function takes 1 argument, an address and
         returns the number of tickets that address has purchased.
     */
-
+    function getBuyerTicketCount(address _address)
+      public
+      view
+      verifyIsBuyer(_address, this.buyers)
+      returns (uint count)
+    {
+     count = this.buyers[_address];
+    }
     /*
         Define a function called buyTickets().
         This function allows someone to purchase tickets for the event.
@@ -94,6 +106,18 @@ contract EventTickets {
             - refund any surplus value sent with the transaction
             - emit the appropriate event
     */
+    function buyTickets(uint count)
+      public
+      payable
+      saleIsOpen()
+      sufficientValue(count)
+      ticketsInStock(count)
+    {
+      myEvent.buyers[msg.sender] += count;
+      myEvent.totalTickets -= count;
+      owner.transfer(count*TICKET_PRICE);
+      emit LogBuyTickets(msg.sender, count);
+    }
 
     /*
         Define a function called getRefund().
